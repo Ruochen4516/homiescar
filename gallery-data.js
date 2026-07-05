@@ -1,0 +1,32 @@
+window.HOMIESCAR_GALLERIES = {
+  events: [
+    { id: "2024-05-19-bridge", date: "2024.05.19", title: "二七长江大桥首秀" },
+    { id: "2024-06-08-wuda-camping", date: "2024.06.08", title: "武大拍摄 & 露营活动" },
+    { id: "2024-06-23-liangzi-lake", date: "2024.06.23", title: "梁子湖彩虹跑道拍摄" },
+    { id: "2024-07-13-game", date: "2024.07.13", title: "汉米第一届王者争霸赛" },
+    { id: "2024-07-19-lei-jun", date: "2024.07.19", title: "雷军年度演讲" },
+    { id: "2024-07-19-wuhan-venue", date: "2024.07.19", title: "雷军年度演讲·武汉分会场" },
+    { id: "2024-07-26-private-salon", date: "2024.07.26", title: "小米精英私享会" },
+    { id: "2024-08-14-ikea", date: "2024.08.14", title: "宜家变装拍摄" },
+    { id: "2024-08-20-yellow-crane", date: "2024.08.20", title: "黄鹤楼拍摄" },
+    { id: "2024-09-01-open-party", date: "2024.09.01", title: "开新派对" },
+    { id: "2024-09-21-xianjuding", date: "2024.09.21", title: "仙居顶露营日出" },
+    { id: "2024-10-03-wedding", date: "2024.10.03", title: "国庆婚车" },
+    { id: "2024-10-03-new-start", date: "2024.10.03", title: "新起点分会场活动" },
+    { id: "2024-12-21-carnival", date: "2024.12.21", title: "HomiesCar 汉米跨年嘉年华" },
+    { id: "2025-01-03-boringless", date: "2025.01.03", title: "不无聊拍摄" },
+    { id: "2025-01-22-little-new-year", date: "2025.01.22", title: "小米的朋友们 欢聚小年夜" },
+    { id: "2025-03-23-mountain-drive", date: "2025.03.23", title: "汉米春日天台山跑山" },
+    { id: "2025-05-24-anniversary-camping", date: "2025.05.24", title: "周年庆 · 湖畔露营 · 星空之约" },
+    { id: "2025-06-07-exam", date: "2025.06.07", title: "2025 高考送考" },
+    { id: "2025-07-06-climbing", date: "2025.07.06", title: "亚洲最大市内攀岩" },
+    { id: "2025-09-18-movie", date: "2025.09.18", title: "918 二十城观影" },
+    { id: "2025-10-07-xianjuding-cloud", date: "2025.10.07", title: "仙居顶云海日出露营" },
+    { id: "2025-10-12-tech-camping", date: "2025.10.12", title: "小米汽车科技露营季武汉站" },
+    { id: "2025-11-15-winter-mountain", date: "2025.11.15", title: "SU 度 YU 激情，汉米冬日跑山" },
+    { id: "2025-11-25-banu", date: "2025.11.25", title: "巴奴 & 汉米品鉴会" },
+    { id: "2025-11-30-trunk-market", date: "2025.11.30", title: "开箱奇遇 小米车友后备箱市集" },
+    { id: "2025-12-13-ski", date: "2025.12.13", title: "武汉小米车友冬季滑雪季" }
+  ],
+  galleries: {}
+};

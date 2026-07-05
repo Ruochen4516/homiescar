@@ -34,6 +34,10 @@ body {
   letter-spacing: 0;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 body::before {
   position: fixed;
   inset: 0;
@@ -540,6 +544,7 @@ h1 {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
   flex-direction: column;
   justify-content: flex-end;
+  cursor: default;
   transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
@@ -559,35 +564,24 @@ h1 {
   inset: 0;
   z-index: -2;
   content: "";
+  opacity: 0;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    radial-gradient(circle at 70% 20%, rgba(100, 246, 220, 0.16), transparent 38%),
+    #071011;
   background-image: var(--recap-photo);
   background-position: center;
   background-size: cover;
   transform: scale(1.02);
-  transition: filter 220ms ease, transform 420ms ease;
+  transition: filter 220ms ease, opacity 220ms ease, transform 420ms ease;
 }
 
-.recap-card:nth-child(6n + 1) {
-  --recap-photo: url("assets/site/road-trip-line.jpg");
+.recap-card.has-gallery {
+  cursor: pointer;
 }
 
-.recap-card:nth-child(6n + 2) {
-  --recap-photo: url("assets/site/lake-convoy.jpg");
-}
-
-.recap-card:nth-child(6n + 3) {
-  --recap-photo: url("assets/site/yellow-su7-field.jpg");
-}
-
-.recap-card:nth-child(6n + 4) {
-  --recap-photo: url("assets/site/new-year-group.jpg");
-}
-
-.recap-card:nth-child(6n + 5) {
-  --recap-photo: url("assets/site/hero-mountain-convoy.jpg");
-}
-
-.recap-card:nth-child(6n + 6) {
-  --recap-photo: url("assets/site/ski-club.jpg");
+.recap-card.has-gallery::after {
+  opacity: 1;
 }
 
 .recap-card:hover {
@@ -596,7 +590,7 @@ h1 {
   transform: translateY(-3px);
 }
 
-.recap-card:hover::after {
+.recap-card.has-gallery:hover::after {
   filter: saturate(1.08) contrast(1.05);
   transform: scale(1.08);
 }
@@ -652,6 +646,141 @@ h1 {
   background: rgba(5, 12, 13, 0.44);
   backdrop-filter: blur(18px);
   font-size: 12px;
+}
+
+.gallery-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  padding: 28px;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-modal.is-open {
+  display: flex;
+}
+
+.gallery-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.76);
+  backdrop-filter: blur(18px);
+}
+
+.gallery-dialog {
+  position: relative;
+  width: min(1120px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  background: rgba(5, 10, 11, 0.96);
+  box-shadow: 0 32px 110px rgba(0, 0, 0, 0.52);
+}
+
+.gallery-close,
+.gallery-nav {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  background: rgba(5, 12, 13, 0.68);
+  cursor: pointer;
+  font: inherit;
+  backdrop-filter: blur(16px);
+}
+
+.gallery-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.gallery-stage {
+  position: relative;
+  display: grid;
+  min-height: 560px;
+  place-items: center;
+  background: #020505;
+}
+
+.gallery-image {
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 46px;
+  height: 68px;
+  place-items: center;
+  border-radius: var(--radius);
+  font-size: 42px;
+  transform: translateY(-50%);
+}
+
+.gallery-nav.prev {
+  left: 16px;
+}
+
+.gallery-nav.next {
+  right: 16px;
+}
+
+.gallery-info {
+  padding: 18px 20px 8px;
+}
+
+.gallery-info h3 {
+  margin-bottom: 6px;
+  font-size: clamp(22px, 3vw, 34px);
+}
+
+.gallery-count {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+.gallery-thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px 20px;
+  overflow-x: auto;
+}
+
+.gallery-thumbs button {
+  flex: 0 0 82px;
+  height: 58px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.54;
+}
+
+.gallery-thumbs button.is-active {
+  border-color: var(--cyan);
+  opacity: 1;
+}
+
+.gallery-thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .scene-card {
