@@ -83,16 +83,36 @@
 
       .admin-preview {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
       }
 
       .admin-preview figure {
+        position: relative;
         margin: 0;
         overflow: hidden;
         border: 1px solid var(--line-soft);
         border-radius: var(--radius);
         background: rgba(255, 255, 255, 0.04);
+      }
+
+      .admin-preview figure.is-cover {
+        border-color: rgba(100, 246, 220, 0.8);
+        box-shadow: 0 0 0 1px rgba(100, 246, 220, 0.28);
+      }
+
+      .admin-preview figure.is-cover::before {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        padding: 5px 8px;
+        border-radius: 999px;
+        color: #06110f;
+        content: "封面";
+        background: linear-gradient(135deg, var(--cyan), var(--mint));
+        font-size: 12px;
+        font-weight: 900;
       }
 
       .admin-preview img {
@@ -102,9 +122,65 @@
       }
 
       .admin-preview figcaption {
-        padding: 8px;
+        display: grid;
+        gap: 8px;
+        padding: 10px;
         color: var(--muted);
         font-size: 12px;
+      }
+
+      .photo-meta {
+        line-height: 1.5;
+      }
+
+      .caption-input {
+        width: 100%;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        color: var(--text);
+        background: rgba(0, 0, 0, 0.28);
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .photo-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .photo-tools button {
+        min-height: 30px;
+        padding: 0 8px;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .photo-tools button[data-action="delete"] {
+        color: #ffd9d6;
+        border-color: rgba(255, 91, 79, 0.34);
+        background: rgba(255, 91, 79, 0.12);
+      }
+
+      .existing-note {
+        margin: 8px 0 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .empty-preview {
+        margin: 0;
+        padding: 22px;
+        border: 1px dashed var(--line-soft);
+        border-radius: var(--radius);
+        color: var(--muted);
       }
 
       @media (max-width: 920px) {
@@ -145,6 +221,7 @@
           <div class="admin-actions">
             <button class="button primary" id="write-project" type="button">写入项目文件夹</button>
             <button class="button ghost" id="download-files" type="button">下载生成文件</button>
+            <button class="button ghost" id="clear-queue" type="button">清空本次选择</button>
             <a class="button ghost" href="index.html#recap">返回网站</a>
           </div>
 
@@ -152,7 +229,8 @@
         </section>
 
         <section class="admin-panel" aria-label="照片预览">
-          <h2>预览</h2>
+          <h2>照片编辑</h2>
+          <p class="existing-note" id="existing-note">选择活动后，可管理已有相册和本次上传照片。</p>
           <div class="admin-preview" id="admin-preview"></div>
         </section>
       </div>
@@ -165,10 +243,11 @@
       const input = document.querySelector("#photo-input");
       const dropzone = document.querySelector(".dropzone");
       const preview = document.querySelector("#admin-preview");
+      const existingNote = document.querySelector("#existing-note");
       const logEl = document.querySelector("#admin-log");
       const maxSizeInput = document.querySelector("#max-size");
       const qualityInput = document.querySelector("#quality");
-      let selectedFiles = [];
+      let selectedItems = [];
 
       const log = (message) => {
         logEl.textContent = `${new Date().toLocaleTimeString("zh-CN")} ${message}\n${logEl.textContent}`;
@@ -183,24 +262,110 @@
 
       const getSelectedEvent = () => store.events.find((event) => event.id === eventSelect.value);
 
+      const createLocalItem = (file) => ({
+        id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+        type: "local",
+        file,
+        src: URL.createObjectURL(file),
+        caption: ""
+      });
+
+      const loadExistingGallery = () => {
+        const event = getSelectedEvent();
+        const gallery = event ? store.galleries[event.id] || [] : [];
+        selectedItems = gallery.map((photo, index) => ({
+          id: `${event.id}-existing-${index}`,
+          type: "existing",
+          file: null,
+          src: photo.src,
+          caption: photo.alt || ""
+        }));
+        existingNote.textContent = gallery.length
+          ? `当前活动已有 ${gallery.length} 张线上照片，可删除、改说明、调整顺序后重新写入相册资料。`
+          : "当前活动还没有线上相册，拖入照片即可创建。";
+        renderPreview();
+      };
+
       const renderPreview = () => {
         preview.innerHTML = "";
-        selectedFiles.forEach((file) => {
+        if (!selectedItems.length) {
+          preview.innerHTML = `<p class="empty-preview">暂无照片。拖入照片后，可以删除、设封面、上移下移和编辑说明。</p>`;
+          return;
+        }
+
+        selectedItems.forEach((item, index) => {
           const figure = document.createElement("figure");
+          figure.className = index === 0 ? "is-cover" : "";
+          figure.dataset.id = item.id;
           const img = document.createElement("img");
-          img.src = URL.createObjectURL(file);
+          img.src = item.src;
           const caption = document.createElement("figcaption");
-          caption.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} MB`;
+          const meta = item.type === "local"
+            ? `${item.file.name} · ${(item.file.size / 1024 / 1024).toFixed(1)} MB`
+            : "线上照片 · 重新写入资料后生效";
+          caption.innerHTML = `
+            <div class="photo-meta">${index + 1}. ${meta}</div>
+            <input class="caption-input" data-action="caption" value="${item.caption.replace(/"/g, "&quot;")}" placeholder="照片说明，例如：车队合影" />
+            <div class="photo-tools">
+              <button type="button" data-action="cover">设为封面</button>
+              <button type="button" data-action="up">上移</button>
+              <button type="button" data-action="down">下移</button>
+              <button type="button" data-action="delete">删除</button>
+            </div>
+          `;
           figure.append(img, caption);
           preview.appendChild(figure);
         });
       };
 
       const collectFiles = (files) => {
-        selectedFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+        const incoming = Array.from(files).filter((file) => file.type.startsWith("image/")).map(createLocalItem);
+        selectedItems = [...selectedItems, ...incoming];
         renderPreview();
-        log(`已选择 ${selectedFiles.length} 张照片。`);
+        log(`已加入 ${incoming.length} 张照片，当前队列 ${selectedItems.length} 张。`);
       };
+
+      const findItemIndex = (target) => {
+        const figure = target.closest("figure");
+        return selectedItems.findIndex((item) => item.id === figure?.dataset.id);
+      };
+
+      preview.addEventListener("click", (event) => {
+        const action = event.target.dataset.action;
+        if (!action || action === "caption") return;
+        const index = findItemIndex(event.target);
+        if (index < 0) return;
+
+        if (action === "delete") {
+          selectedItems.splice(index, 1);
+          log(`已删除第 ${index + 1} 张照片。`);
+        }
+        if (action === "cover") {
+          selectedItems.unshift(selectedItems.splice(index, 1)[0]);
+          log("已设为封面。");
+        }
+        if (action === "up" && index > 0) {
+          [selectedItems[index - 1], selectedItems[index]] = [selectedItems[index], selectedItems[index - 1]];
+        }
+        if (action === "down" && index < selectedItems.length - 1) {
+          [selectedItems[index + 1], selectedItems[index]] = [selectedItems[index], selectedItems[index + 1]];
+        }
+        renderPreview();
+      });
+
+      preview.addEventListener("input", (event) => {
+        if (event.target.dataset.action !== "caption") return;
+        const index = findItemIndex(event.target);
+        if (index >= 0) selectedItems[index].caption = event.target.value;
+      });
+
+      eventSelect.addEventListener("change", loadExistingGallery);
+
+      document.querySelector("#clear-queue").addEventListener("click", () => {
+        selectedItems = [];
+        renderPreview();
+        log("已清空当前编辑队列。");
+      });
 
       input.addEventListener("change", () => collectFiles(input.files));
       dropzone.addEventListener("dragover", (event) => {
@@ -240,19 +405,24 @@
       const buildPackage = async () => {
         const event = getSelectedEvent();
         if (!event) throw new Error("请选择活动");
-        if (!selectedFiles.length) throw new Error("请选择照片");
+        if (!selectedItems.length) throw new Error("请先添加或保留至少一张照片");
 
         const maxSize = Number(maxSizeInput.value);
         const quality = Number(qualityInput.value);
         const photos = [];
         const files = [];
 
-        for (let index = 0; index < selectedFiles.length; index += 1) {
-          const file = selectedFiles[index];
-          const blob = await compressImage(file, maxSize, quality);
+        for (let index = 0; index < selectedItems.length; index += 1) {
+          const item = selectedItems[index];
+          const alt = item.caption.trim() || `${event.title} 活动照片 ${index + 1}`;
+          if (item.type === "existing") {
+            photos.push({ src: item.src, alt });
+            continue;
+          }
+          const blob = await compressImage(item.file, maxSize, quality);
           const filename = `${event.id}-${String(index + 1).padStart(2, "0")}.jpg`;
           const path = `assets/galleries/${event.id}/${filename}`;
-          photos.push({ src: path, alt: `${event.title} 活动照片 ${index + 1}` });
+          photos.push({ src: path, alt });
           files.push({ filename, blob });
           log(`已压缩 ${filename}，${(blob.size / 1024).toFixed(0)} KB。`);
         }
@@ -323,6 +493,8 @@
           log(error.message);
         }
       });
+
+      loadExistingGallery();
     </script>
   </body>
 </html>
