@@ -41,3 +41,22 @@ const counterObserver = new IntersectionObserver(
 );
 
 counters.forEach((counter) => counterObserver.observe(counter));
+
+const filterButtons = document.querySelectorAll(".filter-button");
+const recapCards = document.querySelectorAll(".recap-card");
+
+filterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const filter = button.dataset.filter;
+
+    filterButtons.forEach((item) => item.classList.remove("is-active"));
+    button.classList.add("is-active");
+
+    recapCards.forEach((card) => {
+      const matchesYear = card.dataset.year === filter;
+      const matchesType = card.dataset.type.split(" ").includes(filter);
+      const visible = filter === "all" || matchesYear || matchesType;
+      card.classList.toggle("is-hidden", !visible);
+    });
+  });
+});
