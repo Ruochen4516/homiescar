@@ -320,6 +320,8 @@ h1 {
   width: min(calc(100% - 44px), var(--max));
   margin: 0 auto;
   padding: 108px 0 0;
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
 }
 
 .section-heading {

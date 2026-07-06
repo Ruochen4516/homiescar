@@ -262,11 +262,40 @@
 
       const getSelectedEvent = () => store.events.find((event) => event.id === eventSelect.value);
 
-      const createLocalItem = (file) => ({
+      const createPreviewUrl = (file) =>
+        new Promise((resolve) => {
+          const image = new Image();
+          const source = URL.createObjectURL(file);
+          image.onload = () => {
+            const maxPreviewSize = 420;
+            const scale = Math.min(1, maxPreviewSize / Math.max(image.width, image.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(image.width * scale);
+            canvas.height = Math.round(image.height * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  URL.revokeObjectURL(source);
+                  resolve(URL.createObjectURL(blob));
+                } else {
+                  resolve(source);
+                }
+              },
+              "image/jpeg",
+              0.72
+            );
+          };
+          image.onerror = () => resolve(source);
+          image.src = source;
+        });
+
+      const createLocalItem = (file, previewSrc) => ({
         id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         type: "local",
         file,
-        src: URL.createObjectURL(file),
+        src: previewSrc,
         caption: ""
       });
 
@@ -299,6 +328,8 @@
           figure.dataset.id = item.id;
           const img = document.createElement("img");
           img.src = item.src;
+          img.loading = "lazy";
+          img.decoding = "async";
           const caption = document.createElement("figcaption");
           const meta = item.type === "local"
             ? `${item.file.name} · ${(item.file.size / 1024 / 1024).toFixed(1)} MB`
@@ -318,8 +349,12 @@
         });
       };
 
-      const collectFiles = (files) => {
-        const incoming = Array.from(files).filter((file) => file.type.startsWith("image/")).map(createLocalItem);
+      const collectFiles = async (files) => {
+        const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+        const incoming = [];
+        for (const file of imageFiles) {
+          incoming.push(createLocalItem(file, await createPreviewUrl(file)));
+        }
         selectedItems = [...selectedItems, ...incoming];
         renderPreview();
         log(`已加入 ${incoming.length} 张照片，当前队列 ${selectedItems.length} 张。`);
